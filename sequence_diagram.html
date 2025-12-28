@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth 2.0 Authorization Code Flow</title>
+    <link rel="icon" type="image/svg+xml" href="src/main/resources/static/images/favicon.svg">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true, 
+            theme: 'forest',
+            sequence: {
+                useMaxWidth: false,
+                diagramMarginX: 50,
+                diagramMarginY: 10,
+                boxTextMargin: 5,
+                noteMargin: 10,
+                messageMargin: 35,
+                mirrorActors: true,
+                bottomMarginAdjustment: 1
+            }
+        });
+    </script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+        }
+        .diagram-wrapper {
+            display: block;
+            overflow-x: auto;
+            background: #fff;
+            padding: 30px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .mermaid {
+            display: inline-block;
+            min-width: 100%;
+        }
+        .description {
+            margin-top: 40px;
+            line-height: 1.6;
+        }
+        .step {
+            margin-bottom: 15px;
+            padding-left: 20px;
+            border-left: 4px solid #2ecc71;
+        }
+        .step strong {
+            color: #27ae60;
+        }
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>OAuth 2.0 Authorization Code Flow</h1>
+    
+    <div class="diagram-wrapper">
+        <div class="mermaid">
+            sequenceDiagram
+                autonumber
+                participant User as 👤 User (Resource Owner)
+                participant App as 📱 Client App (N Applications)
+                participant Auth as 🔐 Auth Server (Your Project)
+                participant DB as 🗄️ PostgreSQL
+
+                User->>App: Clicks "Login"
+                App->>Auth: Redirect to /oauth2/authorize<br/>(client_id, scopes, redirect_uri)
+                Auth->>User: Displays Login Page
+                User->>Auth: Submits Credentials<br/>(Username/Password)
+                Auth->>DB: Validates User<br/>(BCrypt Password Check)
+                DB-->>Auth: User Validated
+                Auth->>User: Displays Consent Page
+                User->>Auth: Grants Permission
+                Auth->>DB: Stores Authorization Record
+                Auth->>App: Redirect with 'Authorization Code'
+                App->>Auth: Exchange Code + Secret for Tokens<br/>(/oauth2/token)
+                Auth->>App: Return Access Token & ID Token (JWT)
+                App->>User: Authenticated Session Started
+        </div>
+    </div>
+
+    <div class="description">
+        <h2>Detailed Step-by-Step Explanation</h2>
+        
+        <div class="step">
+            <strong>Step 1: Initiation</strong><br/>
+            The user opens one of your <code>N</code> applications (e.g., React Dashboard) and clicks "Login". The app currently has no user session.
+        </div>
+
+        <div class="step">
+            <strong>Step 2: Redirection to Auth Server</strong><br/>
+            The application redirects the browser to the Auth Server's <code>/oauth2/authorize</code> endpoint, passing <code>client_id</code>, <code>scopes</code>, and a <code>redirect_uri</code>.
+        </div>
+
+        <div class="step">
+            <strong>Step 3: Display Login Page</strong><br/>
+            The Auth Server recognizes the request and presents its secure login page to the user.
+        </div>
+
+        <div class="step">
+            <strong>Step 4: Credential Submission</strong><br/>
+            The user enters their username and password directly into the Auth Server. The client application never sees these credentials.
+        </div>
+
+        <div class="step">
+            <strong>Step 5 & 6: Database Validation</strong><br/>
+            The Auth Server queries the PostgreSQL database and uses <strong>BCrypt</strong> to verify the hashed password.
+        </div>
+
+        <div class="step">
+            <strong>Step 7 & 8: Consent Flow</strong><br/>
+            Once logged in, the user is asked to grant permission (scopes) to the requesting application.
+        </div>
+
+        <div class="step">
+            <strong>Step 9: Store Authorization</strong><br/>
+            The server saves the user's approval in the <code>oauth2_authorization</code> table for session tracking and auditing.
+        </div>
+
+        <div class="step">
+            <strong>Step 10: Issue Authorization Code</strong><br/>
+            The Auth Server redirects the user back to the application with a short-lived, one-time <strong>Authorization Code</strong> in the URL.
+        </div>
+
+        <div class="step">
+            <strong>Step 11: Token Exchange (Back-channel)</strong><br/>
+            The application sends the code + its <code>client_secret</code> to the Auth Server's <code>/oauth2/token</code> endpoint via a secure server-to-server call.
+        </div>
+
+        <div class="step">
+            <strong>Step 12: Issue JWT Tokens</strong><br/>
+            The Auth Server validates the code and secret, then issues an <strong>Access Token</strong> (for APIs) and an <strong>ID Token</strong> (for user profile data).
+        </div>
+
+        <div class="step">
+            <strong>Step 13: Application Session Started</strong><br/>
+            The application receives the tokens and establishes a local session for the user. Authentication is complete.
+        </div>
+    </div>
+</div>
+
+<footer>
+    &copy; 2025 OAuth 2.0 Server Project - Low Level Design
+</footer>
+
+</body>
+</html>
+

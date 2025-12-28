@@ -1,4 +1,4 @@
-package com.proton_tech.oauth;
+package com.proton.oauth;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

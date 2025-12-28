@@ -1,4 +1,4 @@
-CREATE TABLE oauth2_registered_client (
+CREATE TABLE IF NOT EXISTS oauth2_registered_client (
     id varchar(100) NOT NULL,
     client_id varchar(100) NOT NULL,
     client_id_issued_at timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -15,7 +15,7 @@ CREATE TABLE oauth2_registered_client (
     PRIMARY KEY (id)
 );
 
-CREATE TABLE oauth2_authorization (
+CREATE TABLE IF NOT EXISTS oauth2_authorization (
     id varchar(100) NOT NULL,
     registered_client_id varchar(100) NOT NULL,
     principal_name varchar(200) NOT NULL,
@@ -52,10 +52,18 @@ CREATE TABLE oauth2_authorization (
     PRIMARY KEY (id)
 );
 
-CREATE TABLE oauth2_authorization_consent (
+CREATE TABLE IF NOT EXISTS oauth2_authorization_consent (
     registered_client_id varchar(100) NOT NULL,
     principal_name varchar(200) NOT NULL,
     authorities varchar(1000) NOT NULL,
     PRIMARY KEY (registered_client_id, principal_name)
+);
+
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    roles VARCHAR(255),
+    enabled BOOLEAN DEFAULT TRUE
 );
 

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Proton Tech</title>
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg" th:href="@{/images/favicon.svg}">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .logo {
+            margin-bottom: 20px;
+        }
+        .logo img {
+            max-width: 150px;
+            height: auto;
+        }
+        h2 {
+            margin-bottom: 30px;
+            color: #1c1e21;
+            font-size: 24px;
+            font-weight: 400;
+        }
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 14px 12px;
+            border: 1px solid #dddfe2;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background: transparent;
+        }
+        .input-group label {
+            position: absolute;
+            left: 12px;
+            top: 14px;
+            color: #8d949e;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            pointer-events: none;
+            background-color: white;
+            padding: 0 4px;
+        }
+        /* Float the label when input is focused or has content */
+        .input-group input:focus + label,
+        .input-group input:not(:placeholder-shown) + label {
+            top: -10px;
+            left: 8px;
+            font-size: 12px;
+            color: #1877f2;
+            font-weight: bold;
+        }
+        .input-group input:focus {
+            border: 2px solid #1877f2;
+            outline: none;
+            padding: 13px 11px; /* Adjust padding for 2px border */
+        }
+        .login-button {
+            width: 100%;
+            padding: 12px;
+            background-color: #1877f2;
+            border: none;
+            border-radius: 6px;
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 10px;
+        }
+        .login-button:hover {
+            background-color: #166fe5;
+        }
+        .error-message {
+            background-color: #ffebe9;
+            color: #ce3c2e;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            border: 1px solid rgba(255, 129, 130, 0.4);
+            text-align: left;
+        }
+        .footer {
+            margin-top: 25px;
+            font-size: 14px;
+            color: #777;
+        }
+        .footer a {
+            color: #1877f2;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <img src="/images/logo.svg" th:src="@{/images/logo.svg}" alt="Proton Tech Logo">
+        </div>
+        <h2>Sign In</h2>
+        
+        <div th:if="${param.error}" class="error-message">
+            Invalid username or password.
+        </div>
+        <div th:if="${param.logout}" class="error-message" style="background-color: #e7f3ff; color: #1877f2; border-color: #d1e7ff;">
+            You have been logged out.
+        </div>
+
+        <form th:action="@{/login}" method="post">
+            <div class="input-group">
+                <input type="text" id="username" name="username" required autofocus placeholder=" ">
+                <label for="username">Username</label>
+            </div>
+            <div class="input-group">
+                <input type="password" id="password" name="password" required placeholder=" ">
+                <label for="password">Password</label>
+            </div>
+            <button type="submit" class="login-button">Log In</button>
+        </form>
+
+        <div class="footer">
+            <p>Don't have an account? <a href="/signup" th:href="@{/signup}">Sign Up</a></p>
+            <p>&copy; 2025 Proton Tech. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,4 +1,4 @@
-package com.proton_tech.oauth;
+package com.proton.oauth;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
