@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>User Management | Proton Tech</title>
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg" th:href="@{/images/favicon.svg}">
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .logo img { max-width: 120px; }
+        h1 { color: #1c1e21; }
+        .search-bar { margin-bottom: 20px; display: flex; gap: 10px; }
+        .search-bar input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        .search-bar button { padding: 10px 20px; background-color: #1877f2; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #ddd; }
+        th { background-color: #f8f9fa; color: #4b4f56; }
+        .btn-edit { color: #1877f2; text-decoration: none; font-weight: bold; }
+        .status-enabled { color: green; font-weight: bold; }
+        .status-disabled { color: red; font-weight: bold; }
+        .nav-links { margin-bottom: 20px; }
+        .nav-links a { margin-right: 15px; color: #1877f2; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo"><img src="/images/logo.svg" th:src="@{/images/logo.svg}"></div>
+            <h1>User Management</h1>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <a href="/" th:href="@{/}" style="color: #1877f2; text-decoration: none; font-weight: bold;">Dashboard</a>
+                <form th:action="@{/logout}" method="post" style="margin: 0;">
+                    <button type="submit" style="background-color: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-weight: bold; cursor: pointer;">Log Out</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="nav-links" th:if="${#authorization.expression('hasRole(''SUPER_ADMIN'')')}">
+            <a href="/super-admin/create-admin" th:href="@{/super-admin/create-admin}">Create Admin User</a>
+        </div>
+
+        <form class="search-bar" th:action="@{/admin/users}" method="get">
+            <input type="text" name="search" th:value="${search}" placeholder="Search by username or email...">
+            <button type="submit">Search</button>
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Roles</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="user : ${users}">
+                    <td th:text="${user.id}">1</td>
+                    <td th:text="${user.username}">user.name</td>
+                    <td th:text="${user.firstName + ' ' + user.lastName}">Full Name</td>
+                    <td th:text="${user.email}">email@example.com</td>
+                    <td>
+                        <span th:each="role, iter : ${user.roles}" 
+                              th:text="${role.name + (!iter.last ? ', ' : '')}">
+                        </span>
+                    </td>
+                    <td>
+                        <span th:if="${user.enabled}" class="status-enabled">Active</span>
+                        <span th:unless="${user.enabled}" class="status-disabled">Inactive</span>
+                    </td>
+                    <td>
+                        <!-- Logic: 
+                             1. Super Admin can edit anyone
+                             2. Admin can edit if target user has ONLY ROLE_USER
+                        -->
+                        <a th:if="${#authorization.expression('hasRole(''ROLE_SUPER_ADMIN'')') or 
+                                    (#authorization.expression('hasRole(''ROLE_ADMIN'')') and user.roles.size() == 1 and user.roles.iterator().next().name == 'ROLE_USER')}"
+                           th:href="@{/admin/users/edit/{id}(id=${user.id})}" class="btn-edit">Edit</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
+

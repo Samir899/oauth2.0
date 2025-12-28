@@ -84,9 +84,11 @@ public class SecurityConfig {
     @Order(2)
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.ignoringRequestMatchers("/api/users/register"))
+            .csrf(csrf -> csrf.ignoringRequestMatchers("/api/users/register", "/api/users/forgot-password", "/api/users/reset-password", "/api/admin/**"))
             .authorizeHttpRequests((authorize) -> authorize
-                .requestMatchers("/login", "/signup", "/api/users/register", "/images/**", "/css/**", "/favicon.ico").permitAll()
+                .requestMatchers("/login", "/signup", "/api/users/register", "/forgot-password", "/reset-password", "/api/users/forgot-password", "/api/users/reset-password", "/images/**", "/css/**", "/favicon.ico").permitAll()
+                .requestMatchers("/admin/**", "/api/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                .requestMatchers("/super-admin/**").hasRole("SUPER_ADMIN")
                 .anyRequest().authenticated()
             )
             // Form login handles the redirect to the login page from the

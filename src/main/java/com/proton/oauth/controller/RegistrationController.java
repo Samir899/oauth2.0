@@ -1,7 +1,9 @@
 package com.proton.oauth.controller;
 
 import com.proton.oauth.dto.UserRegistrationDto;
+import com.proton.oauth.entity.RoleEntity;
 import com.proton.oauth.entity.UserEntity;
+import com.proton.oauth.repository.RoleRepository;
 import com.proton.oauth.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -10,15 +12,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collections;
+
 @RestController
 @RequestMapping("/api/users")
 public class RegistrationController {
 
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public RegistrationController(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public RegistrationController(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -48,7 +54,11 @@ public class RegistrationController {
         user.setEmail(email);
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(registrationDto.getPassword()));
-        user.setRoles("ROLE_USER");
+        
+        RoleEntity userRole = roleRepository.findByName("ROLE_USER")
+                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+        user.setRoles(Collections.singleton(userRole));
+        
         user.setEnabled(true);
 
         userRepository.save(user);
@@ -67,4 +77,3 @@ public class RegistrationController {
         return username;
     }
 }
-

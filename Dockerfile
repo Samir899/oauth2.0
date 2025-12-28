@@ -17,3 +17,4 @@ EXPOSE 9000
 # Entrypoint to run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
 
+

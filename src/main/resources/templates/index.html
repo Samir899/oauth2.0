@@ -83,6 +83,12 @@
             <p><strong>Username:</strong> <span sec:authentication="name">username</span></p>
         </div>
 
+        <div style="margin-bottom: 30px;" th:if="${#authorization.expression('hasAnyRole(''ADMIN'', ''SUPER_ADMIN'')')}">
+            <a href="/admin/users" style="color: #1877f2; text-decoration: none; font-weight: bold; border: 1px solid #1877f2; padding: 10px 20px; border-radius: 6px;">
+                Go to Admin Dashboard
+            </a>
+        </div>
+
         <form th:action="@{/logout}" method="post">
             <button type="submit" class="logout-button" style="border:none; cursor:pointer;">Log Out</button>
         </form>
