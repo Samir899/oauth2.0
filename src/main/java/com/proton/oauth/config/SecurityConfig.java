@@ -5,6 +5,7 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import com.proton.oauth.dto.CustomUserDetails;
 import com.proton.oauth.entity.UserEntity;
 import com.proton.oauth.repository.UserRepository;
 import org.springframework.context.annotation.Bean;
@@ -110,16 +111,12 @@ public class SecurityConfig {
 
     @Bean
     public UserDetailsService userDetailsService(UserRepository userRepository) {
-        return username -> {
-            UserEntity user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        return identifier -> {
+            UserEntity user = userRepository.findByUsername(identifier)
+                    .orElseGet(() -> userRepository.findByEmail(identifier)
+                            .orElseThrow(() -> new UsernameNotFoundException("User not found: " + identifier)));
 
-            return User.builder()
-                    .username(user.getUsername())
-                    .password(user.getPassword())
-                    .authorities(user.getRoles().split(","))
-                    .disabled(!user.isEnabled())
-                    .build();
+            return new CustomUserDetails(user);
         };
     }
 

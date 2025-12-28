@@ -24,19 +24,47 @@ public class RegistrationController {
 
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@RequestBody UserRegistrationDto registrationDto) {
-        if (userRepository.findByUsername(registrationDto.getUsername()).isPresent()) {
-            return ResponseEntity.badRequest().body("Username already exists");
+        String firstName = registrationDto.getFirstName() != null ? registrationDto.getFirstName().trim() : "";
+        String lastName = registrationDto.getLastName() != null ? registrationDto.getLastName().trim() : "";
+        String email = registrationDto.getEmail() != null ? registrationDto.getEmail().trim() : "";
+
+        if (firstName.isEmpty() || lastName.isEmpty()) {
+            return ResponseEntity.badRequest().body("First name and last name are required");
         }
 
+        if (!firstName.matches("^[a-zA-Z]+$") || !lastName.matches("^[a-zA-Z]+$")) {
+            return ResponseEntity.badRequest().body("First name and last name should only contain letters (no spaces or special characters)");
+        }
+
+        if (userRepository.findByEmail(email).isPresent()) {
+            return ResponseEntity.badRequest().body("Email already exists");
+        }
+
+        String username = generateUniqueUsername(firstName, lastName);
+
         UserEntity user = new UserEntity();
-        user.setUsername(registrationDto.getUsername());
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setEmail(email);
+        user.setUsername(username);
         user.setPassword(passwordEncoder.encode(registrationDto.getPassword()));
         user.setRoles("ROLE_USER");
         user.setEnabled(true);
 
         userRepository.save(user);
 
-        return ResponseEntity.ok("User registered successfully");
+        return ResponseEntity.ok("User registered successfully. Your username is: " + username);
+    }
+
+    private String generateUniqueUsername(String firstName, String lastName) {
+        String base = (firstName + "." + lastName).toLowerCase();
+        String username = base;
+        int count = 1;
+        while (userRepository.findByUsername(username).isPresent()) {
+            username = base + count;
+            count++;
+        }
+        return username;
     }
 }
 

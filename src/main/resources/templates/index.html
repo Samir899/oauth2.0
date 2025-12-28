@@ -47,6 +47,13 @@
             margin-bottom: 30px;
             text-align: left;
         }
+        .user-info p {
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        .user-info p:last-child {
+            margin-bottom: 0;
+        }
         .logout-button {
             display: inline-block;
             padding: 12px 24px;
@@ -71,7 +78,9 @@
         <p>You have successfully logged into the Proton Tech Identity Provider.</p>
         
         <div class="user-info">
-            <strong>Logged in as:</strong> <span sec:authentication="name">username</span>
+            <p><strong>Name:</strong> <span sec:authentication="principal.fullName">Full Name</span></p>
+            <p><strong>Email:</strong> <span sec:authentication="principal.email">email@example.com</span></p>
+            <p><strong>Username:</strong> <span sec:authentication="name">username</span></p>
         </div>
 
         <form th:action="@{/logout}" method="post">
