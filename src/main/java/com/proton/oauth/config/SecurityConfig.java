@@ -25,6 +25,8 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationConsentService;
 import org.springframework.security.oauth2.server.authorization.JdbcOAuth2AuthorizationService;
@@ -84,9 +86,9 @@ public class SecurityConfig {
     @Order(2)
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.ignoringRequestMatchers("/api/users/register", "/api/users/forgot-password", "/api/users/reset-password", "/api/users/force-reset-password"))
+            .csrf(csrf -> csrf.ignoringRequestMatchers("/api/users/register", "/api/auth/login", "/api/users/forgot-password", "/api/users/reset-password", "/api/users/force-reset-password"))
             .authorizeHttpRequests((authorize) -> authorize
-                .requestMatchers("/login", "/signup", "/api/users/register", "/forgot-password", "/reset-password", "/api/users/forgot-password", "/api/users/reset-password", "/images/**", "/css/**", "/favicon.ico").permitAll()
+                .requestMatchers("/login", "/signup", "/api/users/register", "/api/auth/login", "/forgot-password", "/reset-password", "/api/users/forgot-password", "/api/users/reset-password", "/images/**", "/css/**", "/favicon.ico").permitAll()
                 .requestMatchers("/force-password-reset", "/api/users/force-reset-password").authenticated()
                 .requestMatchers("/admin/**", "/api/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                 .requestMatchers("/super-admin/**").hasRole("SUPER_ADMIN")
@@ -186,6 +188,11 @@ public class SecurityConfig {
     @Bean
     public JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
         return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
+    }
+
+    @Bean
+    public JwtEncoder jwtEncoder(JWKSource<SecurityContext> jwkSource) {
+        return new NimbusJwtEncoder(jwkSource);
     }
 
     @Bean

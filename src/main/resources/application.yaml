@@ -8,7 +8,7 @@ spring:
     driver-class-name: org.postgresql.Driver
   flyway:
     enabled: true
-    baseline-on-migrate: true # This helps if tables already exist
+    baseline-on-migrate: true
   jpa:
     hibernate:
       ddl-auto: none
@@ -28,3 +28,4 @@ management:
 
 server:
   port: ${SERVER_PORT:9000}
+  address: 0.0.0.0 # Allow connections from other devices on the network
