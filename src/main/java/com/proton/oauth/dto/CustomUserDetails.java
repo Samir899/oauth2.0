@@ -5,7 +5,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -48,6 +47,14 @@ public class CustomUserDetails implements UserDetails {
 
     public String getEmail() {
         return user.getEmail();
+    }
+
+    public boolean isPasswordResetRequired() {
+        return user.isPasswordResetRequired();
+    }
+
+    public void setPasswordResetRequired(boolean required) {
+        user.setPasswordResetRequired(required);
     }
 
     @Override

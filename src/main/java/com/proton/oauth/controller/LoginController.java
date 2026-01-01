@@ -1,5 +1,7 @@
 package com.proton.oauth.controller;
 
+import com.proton.oauth.dto.CustomUserDetails;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -17,7 +19,12 @@ public class LoginController {
     }
 
     @GetMapping("/")
-    public String index() {
+    public String index(Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
+            if (userDetails.isPasswordResetRequired()) {
+                return "redirect:/force-password-reset";
+            }
+        }
         return "index";
     }
 
@@ -29,6 +36,11 @@ public class LoginController {
     @GetMapping("/reset-password")
     public String resetPassword() {
         return "reset-password";
+    }
+
+    @GetMapping("/force-password-reset")
+    public String forcePasswordReset() {
+        return "force-password-reset";
     }
 }
 

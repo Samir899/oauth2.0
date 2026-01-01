@@ -36,8 +36,10 @@
             </div>
         </div>
 
-        <div class="nav-links" th:if="${#authorization.expression('hasRole(''SUPER_ADMIN'')')}">
-            <a href="/super-admin/create-admin" th:href="@{/super-admin/create-admin}">Create Admin User</a>
+        <div class="nav-links">
+            <a href="/super-admin/create-admin" th:href="@{/super-admin/create-admin}" th:if="${#authorization.expression('hasRole(''SUPER_ADMIN'')')}">Create Admin User</a>
+            <a href="/admin/settings/templates" th:href="@{/admin/settings/templates}">Email Templates</a>
+            <a href="/admin/settings/smtp" th:href="@{/admin/settings/smtp}">SMTP Settings</a>
         </div>
 
         <form class="search-bar" th:action="@{/admin/users}" method="get">

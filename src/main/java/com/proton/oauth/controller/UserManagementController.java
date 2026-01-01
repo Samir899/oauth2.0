@@ -1,42 +1,32 @@
 package com.proton.oauth.controller;
 
-import com.proton.oauth.entity.RoleEntity;
 import com.proton.oauth.entity.UserEntity;
 import com.proton.oauth.repository.RoleRepository;
-import com.proton.oauth.repository.UserRepository;
-import org.springframework.security.access.AccessDeniedException;
+import com.proton.oauth.service.UserService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin/users")
 public class UserManagementController {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final RoleRepository roleRepository;
 
-    public UserManagementController(UserRepository userRepository, RoleRepository roleRepository) {
-        this.userRepository = userRepository;
+    public UserManagementController(UserService userService, RoleRepository roleRepository) {
+        this.userService = userService;
         this.roleRepository = roleRepository;
     }
 
     @GetMapping
     public String listUsers(Model model, @RequestParam(required = false) String search, Authentication authentication) {
-        List<UserEntity> users;
-        if (search != null && !search.isEmpty()) {
-            users = userRepository.findAll().stream()
-                    .filter(u -> u.getUsername().contains(search) || u.getEmail().contains(search))
-                    .toList();
-        } else {
-            users = userRepository.findAll();
-        }
+        List<UserEntity> users = (search != null && !search.isEmpty()) 
+                ? userService.searchUsers(search) 
+                : userService.findAllUsers();
         
         model.addAttribute("users", users);
         model.addAttribute("search", search);
@@ -46,11 +36,11 @@ public class UserManagementController {
 
     @GetMapping("/edit/{id}")
     public String editUserForm(@PathVariable Long id, Model model, Authentication authentication) {
-        UserEntity user = userRepository.findById(id)
+        UserEntity user = userService.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid user Id:" + id));
         
-        if (!canEditUser(authentication, user)) {
-            throw new AccessDeniedException("You do not have permission to edit this user");
+        if (!userService.canEditUser(authentication, user)) {
+            return "redirect:/admin/users?error=access_denied";
         }
         
         model.addAttribute("user", user);
@@ -63,53 +53,14 @@ public class UserManagementController {
                              @RequestParam String firstName,
                              @RequestParam String lastName,
                              @RequestParam(defaultValue = "false") boolean enabled,
+                             @RequestParam(defaultValue = "false") boolean passwordResetRequired,
                              @RequestParam(required = false) List<Long> roleIds,
                              Authentication authentication) {
-        UserEntity user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid user Id:" + id));
-        
-        if (!canEditUser(authentication, user)) {
-            throw new AccessDeniedException("You do not have permission to edit this user");
+        try {
+            userService.updateUserByAdmin(id, firstName, lastName, enabled, passwordResetRequired, roleIds, authentication);
+            return "redirect:/admin/users?success=updated";
+        } catch (Exception e) {
+            return "redirect:/admin/users?error=" + e.getMessage();
         }
-        
-        user.setFirstName(firstName);
-        user.setLastName(lastName);
-        user.setEnabled(enabled);
-        
-        // Only allow changing roles if current user is SUPER_ADMIN
-        if (isSuperAdmin(authentication) && roleIds != null) {
-            Set<RoleEntity> roles = new HashSet<>(roleRepository.findAllById(roleIds));
-            user.setRoles(roles);
-        }
-        
-        userRepository.save(user);
-        return "redirect:/admin/users";
-    }
-    
-    private boolean canEditUser(Authentication authentication, UserEntity targetUser) {
-        if (isSuperAdmin(authentication)) {
-            return true;
-        }
-        
-        if (isAdmin(authentication)) {
-            // Admin can only edit if target user has ONLY ROLE_USER
-            Set<String> roleNames = targetUser.getRoles().stream()
-                    .map(RoleEntity::getName)
-                    .collect(Collectors.toSet());
-            
-            return roleNames.size() == 1 && roleNames.contains("ROLE_USER");
-        }
-        
-        return false;
-    }
-    
-    private boolean isSuperAdmin(Authentication authentication) {
-        return authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN"));
-    }
-    
-    private boolean isAdmin(Authentication authentication) {
-        return authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
     }
 }

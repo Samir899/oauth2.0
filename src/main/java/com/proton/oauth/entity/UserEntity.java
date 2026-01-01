@@ -26,6 +26,8 @@ public class UserEntity {
 
     private boolean enabled = true;
 
+    private boolean passwordResetRequired = false;
+
     private String passwordResetToken;
     
     private java.time.LocalDateTime passwordResetTokenExpiry;
@@ -60,6 +62,9 @@ public class UserEntity {
 
     public boolean isEnabled() { return enabled; }
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
+
+    public boolean isPasswordResetRequired() { return passwordResetRequired; }
+    public void setPasswordResetRequired(boolean passwordResetRequired) { this.passwordResetRequired = passwordResetRequired; }
 
     public String getPasswordResetToken() { return passwordResetToken; }
     public void setPasswordResetToken(String passwordResetToken) { this.passwordResetToken = passwordResetToken; }

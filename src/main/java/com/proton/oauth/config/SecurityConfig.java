@@ -84,9 +84,10 @@ public class SecurityConfig {
     @Order(2)
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.ignoringRequestMatchers("/api/users/register", "/api/users/forgot-password", "/api/users/reset-password", "/api/admin/**"))
+            .csrf(csrf -> csrf.ignoringRequestMatchers("/api/users/register", "/api/users/forgot-password", "/api/users/reset-password", "/api/users/force-reset-password"))
             .authorizeHttpRequests((authorize) -> authorize
                 .requestMatchers("/login", "/signup", "/api/users/register", "/forgot-password", "/reset-password", "/api/users/forgot-password", "/api/users/reset-password", "/images/**", "/css/**", "/favicon.ico").permitAll()
+                .requestMatchers("/force-password-reset", "/api/users/force-reset-password").authenticated()
                 .requestMatchers("/admin/**", "/api/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                 .requestMatchers("/super-admin/**").hasRole("SUPER_ADMIN")
                 .anyRequest().authenticated()

@@ -60,6 +60,11 @@
                 <input type="checkbox" name="enabled" th:checked="${user.enabled}" id="enabled">
                 <label for="enabled">Account Enabled</label>
             </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" name="passwordResetRequired" th:checked="${user.passwordResetRequired}" id="passwordResetRequired">
+                <label for="passwordResetRequired">Force Password Reset on Next Login</label>
+            </div>
             
             <button type="submit" class="save-button">Save Changes</button>
         </form>

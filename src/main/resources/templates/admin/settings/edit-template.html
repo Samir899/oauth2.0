@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Email Template | Proton Tech</title>
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg" th:href="@{/images/favicon.svg}">
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .logo img { max-width: 120px; }
+        h1 { color: #1c1e21; margin: 0; }
+        .main-layout { display: grid; grid-template-columns: 1fr 300px; gap: 30px; }
+        .form-group { margin-bottom: 20px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #4b4f56; }
+        .form-group input, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #dddfe2; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
+        .form-group textarea { height: 350px; font-family: monospace; }
+        .save-button { width: 100%; padding: 14px; background-color: #1877f2; border: none; border-radius: 6px; color: white; font-size: 18px; font-weight: bold; cursor: pointer; }
+        .test-section { background-color: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #dee2e6; height: fit-content; }
+        .test-section h3 { margin-top: 0; color: #1c1e21; }
+        .test-button { 
+            width: 100%; 
+            padding: 12px; 
+            background-color: #606770; 
+            border: none; 
+            border-radius: 6px; 
+            color: white; 
+            font-size: 16px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        .test-button:hover { background-color: #4b4f56; }
+        .test-button:disabled { background-color: #aeb4b7; cursor: not-allowed; }
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            display: none;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .footer { margin-top: 25px; text-align: center; font-size: 14px; }
+        .footer a { color: #1877f2; text-decoration: none; font-weight: bold; }
+        .variables-hint { background-color: #e7f3ff; padding: 15px; border-radius: 4px; border: 1px solid #d1e7ff; margin-bottom: 20px; font-size: 14px; color: #1c1e21; }
+        .variables-hint code { background: #fff; padding: 2px 4px; border-radius: 3px; color: #d63384; font-weight: bold; }
+        .alert { padding: 15px; border-radius: 4px; margin-bottom: 20px; }
+        .alert-success { background-color: #e7f3ff; color: #1877f2; border: 1px solid #d1e7ff; }
+        .alert-error { background-color: #ffebe9; color: #ce3c2e; border: 1px solid rgba(255, 129, 130, 0.4); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo"><img src="/images/logo.svg" th:src="@{/images/logo.svg}"></div>
+            <h1>Edit Email Template</h1>
+        </div>
+
+        <div th:if="${param.success}" class="alert alert-success">
+            <span th:if="${param.success[0] == 'test_sent'}">Test email sent successfully!</span>
+        </div>
+        <div th:if="${param.error}" class="alert alert-error">
+            <span th:if="${param.error[0] == 'test_failed'}">Failed to send test email. Check SMTP settings.</span>
+        </div>
+
+        <div class="variables-hint">
+            <strong>Available User Variables:</strong> <code>[[firstName]]</code>, <code>[[lastName]]</code>, <code>[[fullName]]</code>, <code>[[username]]</code>, <code>[[email]]</code>. <br>
+            <strong>System Variables:</strong> <code>[[resetLink]]</code> (for Password Reset template).
+        </div>
+
+        <form id="templateForm" th:action="@{/admin/settings/templates/edit/{id}(id=${template.id})}" th:object="${template}" method="post">
+            <input type="hidden" name="action" id="actionInput" value="save">
+            <div class="main-layout">
+                <div class="editor-side">
+                    <div class="form-group">
+                        <label>Template Identifier (Read-only)</label>
+                        <input type="text" th:field="*{name}" readonly style="background-color: #f8f9fa;">
+                    </div>
+                    <div class="form-group">
+                        <label>Description / Internal Note</label>
+                        <input type="text" th:field="*{description}" placeholder="e.g., Sent when a user clicks forgot password.">
+                    </div>
+                    <div class="form-group">
+                        <label>Email Subject</label>
+                        <input type="text" th:field="*{subject}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email Body (HTML supported)</label>
+                        <textarea th:field="*{body}" required></textarea>
+                    </div>
+                    <button type="submit" value="save" id="saveBtn" class="save-button">Save Changes</button>
+                </div>
+
+                <div class="test-side">
+                    <div class="test-section">
+                        <h3>Test Template</h3>
+                        <p style="font-size: 13px; color: #606770; margin-bottom: 15px;">Save changes before testing to use the latest content.</p>
+                        
+                        <div class="form-group">
+                            <label style="font-size: 13px;">Send Test To (Email)</label>
+                            <input type="email" name="testRecipient" placeholder="your@email.com" 
+                                   th:value="${#authentication.principal.email}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label style="font-size: 13px;">Data Source (User)</label>
+                            <input type="text" name="testUserIdentifier" placeholder="Username or Email"
+                                   th:value="${#authentication.name}">
+                            <small style="font-size: 11px; color: #8d949e;">We'll use this user's data to fill variables.</small>
+                        </div>
+
+                        <button type="submit" value="test" id="testBtn" class="test-button">
+                            <span class="spinner" id="testSpinner"></span>
+                            <span id="testBtnText">Save & Send Test</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <script>
+            document.getElementById('templateForm').addEventListener('submit', function(e) {
+                // Determine which button was clicked
+                const action = e.submitter ? e.submitter.value : 'save';
+                document.getElementById('actionInput').value = action;
+
+                const saveBtn = document.getElementById('saveBtn');
+                const testBtn = document.getElementById('testBtn');
+                const testSpinner = document.getElementById('testSpinner');
+                const testBtnText = document.getElementById('testBtnText');
+
+                if (action === 'test') {
+                    testBtn.disabled = true;
+                    saveBtn.disabled = true;
+                    testSpinner.style.display = 'block';
+                    testBtnText.textContent = 'Sending...';
+                } else {
+                    saveBtn.disabled = true;
+                    testBtn.disabled = true;
+                    saveBtn.textContent = 'Saving...';
+                }
+            });
+        </script>
+        
+        <div class="footer">
+            <a href="/admin/settings/templates">Cancel and Return to List</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,71 +1,68 @@
 package com.proton.oauth.controller;
 
-import com.proton.oauth.entity.UserEntity;
-import com.proton.oauth.repository.UserRepository;
+import com.proton.oauth.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/users")
 public class PasswordResetController {
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private static final Logger log = LoggerFactory.getLogger(PasswordResetController.class);
+    private final UserService userService;
 
-    public PasswordResetController(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
+    public PasswordResetController(UserService userService) {
+        this.userService = userService;
     }
 
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestBody Map<String, String> request) {
         String email = request.get("email");
-        Optional<UserEntity> userOptional = userRepository.findByEmail(email);
-
-        if (userOptional.isPresent()) {
-            UserEntity user = userOptional.get();
-            String token = UUID.randomUUID().toString();
-            user.setPasswordResetToken(token);
-            user.setPasswordResetTokenExpiry(LocalDateTime.now().plusHours(1));
-            userRepository.save(user);
-
-            // In a real app, you would send an email here.
-            // For development, we print it to the console.
-            System.out.println("==========================================");
-            System.out.println("PASSWORD RESET REQUEST FOR: " + email);
-            System.out.println("RESET LINK: http://localhost:9000/reset-password?token=" + token);
-            System.out.println("==========================================");
-        }
-
-        // We return the same message even if user doesn't exist for security (prevent email enumeration)
+        userService.initiatePasswordReset(email);
+        log.info("Password reset request received for email: {}", email);
         return ResponseEntity.ok("If an account exists with that email, a reset link has been sent.");
     }
 
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(@RequestBody Map<String, String> request) {
-        String token = request.get("token");
-        String newPassword = request.get("password");
-
-        Optional<UserEntity> userOptional = userRepository.findByPasswordResetToken(token);
-
-        if (userOptional.isEmpty() || userOptional.get().getPasswordResetTokenExpiry().isBefore(LocalDateTime.now())) {
-            return ResponseEntity.badRequest().body("Invalid or expired reset token.");
+        try {
+            userService.resetPassword(
+                request.get("token"), 
+                request.get("password"), 
+                request.get("confirmPassword")
+            );
+            log.info("Password successfully reset using token.");
+            return ResponseEntity.ok("Password has been reset successfully.");
+        } catch (IllegalArgumentException e) {
+            log.warn("Password reset failed: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            log.error("Unexpected error during password reset: ", e);
+            return ResponseEntity.internalServerError().body("An error occurred during password reset.");
         }
+    }
 
-        UserEntity user = userOptional.get();
-        user.setPassword(passwordEncoder.encode(newPassword));
-        user.setPasswordResetToken(null);
-        user.setPasswordResetTokenExpiry(null);
-        userRepository.save(user);
-
-        return ResponseEntity.ok("Password has been reset successfully.");
+    @PostMapping("/force-reset-password")
+    public ResponseEntity<String> forceResetPassword(@RequestBody Map<String, String> request, Authentication authentication) {
+        try {
+            userService.forceResetPassword(
+                authentication, 
+                request.get("password"), 
+                request.get("confirmPassword")
+            );
+            log.info("Forced password reset completed for user: {}", authentication.getName());
+            return ResponseEntity.ok("Password has been updated successfully.");
+        } catch (IllegalArgumentException e) {
+            log.warn("Forced password reset failed: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            log.error("Unexpected error during forced password reset: ", e);
+            return ResponseEntity.internalServerError().body("An error occurred during password update.");
+        }
     }
 }
-
-

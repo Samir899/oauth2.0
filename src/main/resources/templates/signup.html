@@ -96,9 +96,29 @@
             cursor: pointer;
             transition: background-color 0.2s;
             margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
         }
         .signup-button:hover {
             background-color: #36a420;
+        }
+        .signup-button:disabled {
+            background-color: #afdfa7;
+            cursor: not-allowed;
+        }
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            display: none;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
         .message {
             padding: 12px;
@@ -160,11 +180,10 @@
                 <input type="email" id="email" name="email" required placeholder=" ">
                 <label for="email">Email Address</label>
             </div>
-            <div class="input-group">
-                <input type="password" id="password" name="password" required placeholder=" ">
-                <label for="password">Password</label>
-            </div>
-            <button type="submit" class="signup-button">Sign Up</button>
+            <button type="submit" id="submitBtn" class="signup-button">
+                <span class="spinner" id="spinner"></span>
+                <span id="btnText">Sign Up</span>
+            </button>
         </form>
 
         <div class="footer">
@@ -178,14 +197,22 @@
             const firstName = document.getElementById('firstName').value;
             const lastName = document.getElementById('lastName').value;
             const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
             const msgDiv = document.getElementById('statusMessage');
+            const submitBtn = document.getElementById('submitBtn');
+            const spinner = document.getElementById('spinner');
+            const btnText = document.getElementById('btnText');
+
+            // Disable button and show spinner
+            submitBtn.disabled = true;
+            spinner.style.display = 'block';
+            btnText.textContent = 'Processing...';
+            msgDiv.style.display = 'none';
 
             try {
                 const response = await fetch('/api/users/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ firstName, lastName, email, password })
+                    body: JSON.stringify({ firstName, lastName, email })
                 });
 
                 const result = await response.text();
@@ -193,14 +220,23 @@
                 if (response.ok) {
                     msgDiv.innerHTML = `<strong>Success!</strong> ${result}<br/>Redirecting to login...`;
                     msgDiv.className = 'message success';
+                    msgDiv.style.display = 'block';
                     setTimeout(() => window.location.href = '/login', 5000);
                 } else {
                     msgDiv.textContent = result;
                     msgDiv.className = 'message error';
+                    msgDiv.style.display = 'block';
+                    submitBtn.disabled = false;
+                    spinner.style.display = 'none';
+                    btnText.textContent = 'Sign Up';
                 }
             } catch (err) {
                 msgDiv.textContent = "An error occurred. Please try again.";
                 msgDiv.className = 'message error';
+                msgDiv.style.display = 'block';
+                submitBtn.disabled = false;
+                spinner.style.display = 'none';
+                btnText.textContent = 'Sign Up';
             }
         });
     </script>

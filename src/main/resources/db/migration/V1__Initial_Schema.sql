@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS oauth2_registered_client (
+CREATE TABLE oauth2_registered_client (
     id varchar(100) NOT NULL,
     client_id varchar(100) NOT NULL,
     client_id_issued_at timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS oauth2_registered_client (
     PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS oauth2_authorization (
+CREATE TABLE oauth2_authorization (
     id varchar(100) NOT NULL,
     registered_client_id varchar(100) NOT NULL,
     principal_name varchar(200) NOT NULL,
@@ -52,14 +52,14 @@ CREATE TABLE IF NOT EXISTS oauth2_authorization (
     PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS oauth2_authorization_consent (
+CREATE TABLE oauth2_authorization_consent (
     registered_client_id varchar(100) NOT NULL,
     principal_name varchar(200) NOT NULL,
     authorities varchar(1000) NOT NULL,
     PRIMARY KEY (registered_client_id, principal_name)
 );
 
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
@@ -72,18 +72,18 @@ CREATE TABLE IF NOT EXISTS users (
     password_reset_token_expiry TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS roles (
+CREATE TABLE roles (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) UNIQUE NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS users_roles (
+CREATE TABLE users_roles (
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     role_id INTEGER NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
     PRIMARY KEY (user_id, role_id)
 );
 
-CREATE TABLE IF NOT EXISTS email_templates (
+CREATE TABLE email_templates (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) UNIQUE NOT NULL,
     subject VARCHAR(255) NOT NULL,
@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS email_templates (
     description TEXT
 );
 
-CREATE TABLE IF NOT EXISTS smtp_configs (
+CREATE TABLE smtp_configs (
     id BIGINT PRIMARY KEY,
     host VARCHAR(255),
     port INTEGER,
@@ -102,7 +102,8 @@ CREATE TABLE IF NOT EXISTS smtp_configs (
     starttls BOOLEAN DEFAULT TRUE
 );
 
--- Pre-populate roles if they don't exist
-INSERT INTO roles (name) VALUES ('ROLE_USER') ON CONFLICT (name) DO NOTHING;
-INSERT INTO roles (name) VALUES ('ROLE_ADMIN') ON CONFLICT (name) DO NOTHING;
-INSERT INTO roles (name) VALUES ('ROLE_SUPER_ADMIN') ON CONFLICT (name) DO NOTHING;
+-- Pre-populate roles
+INSERT INTO roles (name) VALUES ('ROLE_USER');
+INSERT INTO roles (name) VALUES ('ROLE_ADMIN');
+INSERT INTO roles (name) VALUES ('ROLE_SUPER_ADMIN');
+
