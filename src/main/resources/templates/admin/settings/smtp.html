@@ -74,6 +74,26 @@
                     <label><input type="checkbox" th:field="*{auth}"> Use Authentication</label>
                     <label><input type="checkbox" th:field="*{starttls}"> Use STARTTLS</label>
                 </div>
+
+                <div class="section" style="margin-top: 40px; border-top: 2px solid #f0f2f5; padding-top: 20px;">
+                    <h2>Frontend Application Details</h2>
+                    <p style="color: #606770; font-size: 0.9em; margin-bottom: 20px;">These settings are used to generate the password reset links sent in emails.</p>
+                    <div style="display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label>Frontend Protocol</label>
+                            <input type="text" th:field="*{frontendProtocol}" placeholder="http or https">
+                        </div>
+                        <div class="form-group">
+                            <label>Frontend Host / Domain</label>
+                            <input type="text" th:field="*{frontendHost}" placeholder="e.g., localhost or app.spendvolt.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Frontend Port</label>
+                            <input type="number" th:field="*{frontendPort}" placeholder="e.g., 9000">
+                        </div>
+                    </div>
+                </div>
+
                 <button type="submit" class="save-button" style="margin-top: 30px;">Save Configuration</button>
             </form>
         </div>

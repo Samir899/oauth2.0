@@ -6,6 +6,7 @@ import com.proton.oauth.entity.UserEntity;
 import com.proton.oauth.exception.ResourceNotFoundException;
 import com.proton.oauth.exception.UserAlreadyExistsException;
 import com.proton.oauth.repository.RoleRepository;
+import com.proton.oauth.repository.SmtpConfigRepository;
 import com.proton.oauth.repository.UserRepository;
 import com.proton.oauth.service.EmailService;
 import com.proton.oauth.service.UserService;
@@ -31,15 +32,18 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final SmtpConfigRepository smtpConfigRepository;
 
     public UserServiceImpl(UserRepository userRepository, 
                            RoleRepository roleRepository, 
                            PasswordEncoder passwordEncoder, 
-                           EmailService emailService) {
+                           EmailService emailService,
+                           SmtpConfigRepository smtpConfigRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
+        this.smtpConfigRepository = smtpConfigRepository;
     }
 
     @Override
@@ -177,8 +181,17 @@ public class UserServiceImpl implements UserService {
             user.setPasswordResetTokenExpiry(LocalDateTime.now().plusHours(1));
             userRepository.save(user);
 
+            var config = smtpConfigRepository.findById(1L)
+                    .orElseThrow(() -> new RuntimeException("SMTP configuration not found"));
+
+            String resetLink = String.format("%s://%s:%d/reset-password?token=%s",
+                    config.getFrontendProtocol(),
+                    config.getFrontendHost(),
+                    config.getFrontendPort(),
+                    token);
+
             Map<String, String> variables = new HashMap<>();
-            variables.put("resetLink", "http://localhost:9000/reset-password?token=" + token);
+            variables.put("resetLink", resetLink);
             emailService.sendEmailWithUser(email, "PASSWORD_RESET", user, variables);
             log.info("Password reset initiated for {}", email);
         }, () -> log.warn("Password reset attempted for non-existent email: {}", email));
@@ -220,8 +233,17 @@ public class UserServiceImpl implements UserService {
     }
 
     private void sendWelcomeEmail(UserEntity user, String otp) {
+        var config = smtpConfigRepository.findById(1L)
+                .orElseThrow(() -> new RuntimeException("SMTP configuration not found"));
+
+        String loginLink = String.format("%s://%s:%d/login",
+                config.getFrontendProtocol(),
+                config.getFrontendHost(),
+                config.getFrontendPort());
+
         Map<String, String> variables = new HashMap<>();
         variables.put("temporaryPassword", otp);
+        variables.put("loginLink", loginLink);
         emailService.sendEmailWithUser(user.getEmail(), "WELCOME_OTP", user, variables);
     }
 

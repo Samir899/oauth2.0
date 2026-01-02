@@ -17,6 +17,10 @@ public class SmtpConfigEntity {
     private boolean auth = true;
     private boolean starttls = true;
 
+    private String frontendProtocol = "http";
+    private String frontendHost = "localhost";
+    private int frontendPort = 9000;
+
     public SmtpConfigEntity() {}
 
     public Long getId() { return id; }
@@ -42,5 +46,14 @@ public class SmtpConfigEntity {
 
     public boolean isStarttls() { return starttls; }
     public void setStarttls(boolean starttls) { this.starttls = starttls; }
+
+    public String getFrontendProtocol() { return frontendProtocol; }
+    public void setFrontendProtocol(String frontendProtocol) { this.frontendProtocol = frontendProtocol; }
+
+    public String getFrontendHost() { return frontendHost; }
+    public void setFrontendHost(String frontendHost) { this.frontendHost = frontendHost; }
+
+    public int getFrontendPort() { return frontendPort; }
+    public void setFrontendPort(int frontendPort) { this.frontendPort = frontendPort; }
 }
 

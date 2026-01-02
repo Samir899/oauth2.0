@@ -9,7 +9,6 @@ import com.proton.oauth.repository.SmtpConfigRepository;
 import com.proton.oauth.repository.UserRepository;
 import com.proton.oauth.service.EmailService;
 import com.proton.oauth.service.SettingsService;
-import jakarta.mail.MessagingException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -81,8 +80,22 @@ public class SettingsServiceImpl implements SettingsService {
                         .orElseGet(() -> userRepository.findByEmail(testUserIdentifier).orElse(null));
             }
 
+            var config = smtpConfigRepository.findById(1L)
+                    .orElseThrow(() -> new ResourceNotFoundException("SMTP Configuration not found"));
+
+            String testResetLink = String.format("%s://%s:%d/reset-password?token=TEST_TOKEN",
+                    config.getFrontendProtocol(),
+                    config.getFrontendHost(),
+                    config.getFrontendPort());
+
+            String testLoginLink = String.format("%s://%s:%d/login",
+                    config.getFrontendProtocol(),
+                    config.getFrontendHost(),
+                    config.getFrontendPort());
+
             Map<String, String> extraVars = new HashMap<>();
-            extraVars.put("resetLink", "http://localhost:9000/reset-password?token=TEST_TOKEN");
+            extraVars.put("resetLink", testResetLink);
+            extraVars.put("loginLink", testLoginLink);
             extraVars.put("temporaryPassword", "TEST-OTP-1234");
             extraVars.put("otp", "TEST-OTP-1234");
 
