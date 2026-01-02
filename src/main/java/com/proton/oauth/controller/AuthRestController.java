@@ -57,7 +57,8 @@ public class AuthRestController {
 
         log.info("Login successful for user: {}", user.getUsername());
         String token = generateToken(new CustomUserDetails(user));
-        return ResponseEntity.ok(new AuthResponse(token, user.getUsername(), user.isPasswordResetRequired()));
+        String fullName = user.getFirstName() + (user.getLastName() != null ? " " + user.getLastName() : "");
+        return ResponseEntity.ok(new AuthResponse(token, user.getUsername(), user.isPasswordResetRequired(), fullName));
     }
 
     private String generateToken(CustomUserDetails userDetails) {
@@ -71,7 +72,7 @@ public class AuthRestController {
         log.info("Generating token for subject: {}", userDetails.getUsername());
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
-                .issuer("http://192.168.1.4:9000") // Use real IP as issuer
+                .issuer("http://192.168.1.6:9000") // Use real IP as issuer
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(expiry))
                 .subject(userDetails.getUsername())
@@ -95,6 +96,7 @@ public class AuthRestController {
         private String accessToken;
         private String username;
         private boolean passwordResetRequired;
+        private String fullName;
     }
 }
 

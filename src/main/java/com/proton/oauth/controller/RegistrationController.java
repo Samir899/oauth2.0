@@ -1,10 +1,12 @@
 package com.proton.oauth.controller;
 
+import com.proton.oauth.dto.RegistrationResponseDto;
 import com.proton.oauth.dto.UserRegistrationDto;
 import com.proton.oauth.entity.UserEntity;
 import com.proton.oauth.exception.UserAlreadyExistsException;
 import com.proton.oauth.service.UserService;
 import jakarta.validation.Valid;
+import java.util.Collections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -25,17 +27,23 @@ public class RegistrationController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@Valid @RequestBody UserRegistrationDto registrationDto) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody UserRegistrationDto registrationDto) {
         try {
             UserEntity user = userService.registerUser(registrationDto);
             log.info("Successfully registered user: {}", user.getUsername());
-            return ResponseEntity.ok("User registered successfully. Your username is: " + user.getUsername() + ". A temporary password has been sent to your email.");
+            
+            RegistrationResponseDto response = RegistrationResponseDto.builder()
+                    .username(user.getUsername())
+                    .message("Account created successfully. Please check your email for your temporary password.")
+                    .build();
+                    
+            return ResponseEntity.ok(response);
         } catch (UserAlreadyExistsException e) {
             log.warn("Registration failed: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(Collections.singletonMap("message", e.getMessage()));
         } catch (Exception e) {
             log.error("Unexpected error during registration: ", e);
-            return ResponseEntity.internalServerError().body("An unexpected error occurred during registration.");
+            return ResponseEntity.internalServerError().body(Collections.singletonMap("message", "An unexpected error occurred during registration."));
         }
     }
 }

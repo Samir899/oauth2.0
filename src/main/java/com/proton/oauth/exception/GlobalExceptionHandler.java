@@ -6,32 +6,37 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    private ResponseEntity<Map<String, String>> createErrorResponse(int status, String message) {
+        return ResponseEntity.status(status).body(Collections.singletonMap("message", message));
+    }
+
     @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<String> handleUserAlreadyExists(UserAlreadyExistsException e) {
-        return ResponseEntity.badRequest().body(e.getMessage());
+    public ResponseEntity<Map<String, String>> handleUserAlreadyExists(UserAlreadyExistsException e) {
+        return createErrorResponse(400, e.getMessage());
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<String> handleResourceNotFound(ResourceNotFoundException e) {
-        return ResponseEntity.status(404).body(e.getMessage());
+    public ResponseEntity<Map<String, String>> handleResourceNotFound(ResourceNotFoundException e) {
+        return createErrorResponse(404, e.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<String> handleValidationErrors(MethodArgumentNotValidException e) {
+    public ResponseEntity<Map<String, String>> handleValidationErrors(MethodArgumentNotValidException e) {
         String errors = e.getBindingResult().getAllErrors().stream()
                 .map(DefaultMessageSourceResolvable::getDefaultMessage)
                 .collect(Collectors.joining(", "));
-        return ResponseEntity.badRequest().body(errors);
+        return createErrorResponse(400, errors);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> handleIllegalArgument(IllegalArgumentException e) {
-        return ResponseEntity.badRequest().body(e.getMessage());
+    public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException e) {
+        return createErrorResponse(400, e.getMessage());
     }
 }
-
