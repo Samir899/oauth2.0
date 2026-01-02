@@ -1,10 +1,12 @@
 spring:
+  mail:
+    port: 587
   application:
     name: oauth
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/oauth_db}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:dev123}
+    url: ${DB_URL:jdbc:postgresql://34.93.24.96:5432/oauth_db}
+    username: ${DB_USERNAME:admin}
+    password: ${DB_PASSWORD:qznpH8901!@#}
     driver-class-name: org.postgresql.Driver
   flyway:
     enabled: true
