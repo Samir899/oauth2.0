@@ -27,7 +27,7 @@ jobs:
           username: ${{ secrets.GCP_SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "build/libs/*.jar"
-          target: "~/app"
+          target: "app"
           strip_components: 2
 
       - name: Restart Application
@@ -37,6 +37,22 @@ jobs:
           username: ${{ secrets.GCP_SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            sudo fuser -k 8080/tcp || true
+            # Create the app directory if it doesn't exist
+            mkdir -p ~/app
+            
+            # Stop the old application if it's running on port 9000
+            sudo fuser -k 9000/tcp || true
+            
+            # Find the JAR file (excluding the -plain.jar)
+            JAR_FILE=$(find ~/app -name "oauth-*.jar" ! -name "*-plain.jar" | head -n 1)
+            
+            if [ -z "$JAR_FILE" ]; then
+              echo "Error: No suitable JAR file found in ~/app"
+              exit 1
+            fi
+            
+            echo "Starting application with $JAR_FILE..."
             cd ~/app
-            nohup java -jar *.jar > app.log 2>&1 &
+            # Run the JAR in the background and redirect output to app.log
+            nohup java -jar "$JAR_FILE" > app.log 2>&1 &
+            echo "Application startup command executed."

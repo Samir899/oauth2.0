@@ -1,12 +1,21 @@
 spring:
   mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
     port: 587
+    username: ${MAIL_USERNAME:sameerkmr823@gmail.com}
+    password: ${MAIL_PASSWORD:uknaypjrgoiaijuw}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
   application:
     name: oauth
   datasource:
-    url: ${DB_URL:jdbc:postgresql://34.93.24.96:5432/oauth_db}
+    url: ${DB_URL:jdbc:postgresql://10.160.0.2:5432/spendvolt_db}
     username: ${DB_USERNAME:admin}
-    password: ${DB_PASSWORD:qznpH8901!@#}
+    password: ${DB_PASSWORD:zqnpH8901!@#}
     driver-class-name: org.postgresql.Driver
   flyway:
     enabled: true
