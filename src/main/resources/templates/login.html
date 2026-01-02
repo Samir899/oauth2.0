@@ -131,6 +131,9 @@
         <div th:if="${param.logout}" class="error-message" style="background-color: #e7f3ff; color: #1877f2; border-color: #d1e7ff;">
             You have been logged out.
         </div>
+        <div th:if="${param.resetSuccess}" class="error-message" style="background-color: #e7f3ff; color: #1877f2; border-color: #d1e7ff;">
+            Password updated successfully. Please login with your new password.
+        </div>
 
         <form th:action="@{/login}" method="post">
             <div class="input-group">
