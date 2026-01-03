@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -28,6 +29,9 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/auth")
 @Slf4j
 public class AuthRestController {
+
+    @Value("${app.base-url}")
+    private String baseUrl;
 
     private final JwtEncoder jwtEncoder;
     private final UserRepository userRepository;
@@ -72,7 +76,7 @@ public class AuthRestController {
         log.info("Generating token for subject: {}", userDetails.getUsername());
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
-                .issuer("http://192.168.1.6:9000") // Use real IP as issuer
+                .issuer(baseUrl) // Use dynamic baseUrl instead of hardcoded IP
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(expiry))
                 .subject(userDetails.getUsername())
