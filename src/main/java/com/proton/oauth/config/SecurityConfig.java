@@ -8,6 +8,7 @@ import com.nimbusds.jose.proc.SecurityContext;
 import com.proton.oauth.dto.CustomUserDetails;
 import com.proton.oauth.entity.UserEntity;
 import com.proton.oauth.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -52,6 +53,9 @@ import java.util.UUID;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    @Value("${app.base-url}")
+    private String baseUrl;
 
     @Bean
     @Order(1)
@@ -134,8 +138,8 @@ public class SecurityConfig {
             .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
             .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
             .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-            .redirectUri("http://127.0.0.1:8080/login/oauth2/code/oidc-client")
-            .postLogoutRedirectUri("http://127.0.0.1:8080/")
+            .redirectUri(baseUrl + "/login/oauth2/code/oidc-client")
+            .postLogoutRedirectUri(baseUrl + "/")
             .scope(OidcScopes.OPENID)
             .scope(OidcScopes.PROFILE)
             .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())

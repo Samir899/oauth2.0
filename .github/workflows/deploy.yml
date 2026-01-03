@@ -66,6 +66,11 @@ jobs:
             
             # Run the new container
             # We map port 9000 on the VM to port 9000 in the container
-            docker run -d --name oauth-app -p 9000:9000 oauth-service
+            docker run -d --name oauth-app -p 9000:9000 \
+              -e BASE_URL="http://${{ secrets.GCP_VM_IP }}:9000" \
+              -e DB_URL="jdbc:postgresql://${{ secrets.DB_INTERNAL_IP }}:5432/${{ secrets.DB_NAME }}" \
+              -e DB_USERNAME="${{ secrets.DB_USERNAME }}" \
+              -e DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
+              oauth-service
             
             echo "Docker container started successfully."

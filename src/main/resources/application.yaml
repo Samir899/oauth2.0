@@ -2,9 +2,9 @@ spring:
   application:
     name: oauth
   datasource:
-    url: ${DB_URL:jdbc:postgresql://34.93.24.96:5432/oauth_db}
-    username: ${DB_USERNAME:admin}
-    password: ${DB_PASSWORD:zqnpH8901!@#}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/db_name}
+    username: ${DB_USERNAME:db_user}
+    password: ${DB_PASSWORD:db_password}
     driver-class-name: org.postgresql.Driver
   flyway:
     enabled: true
@@ -29,3 +29,6 @@ management:
 server:
   port: ${SERVER_PORT:9000}
   address: 0.0.0.0 # Allow connections from other devices on the network
+
+app:
+  base-url: ${BASE_URL:http://localhost:9000}
