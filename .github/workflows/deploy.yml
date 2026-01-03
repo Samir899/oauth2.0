@@ -11,10 +11,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
 
       - name: Build with Gradle
@@ -26,11 +26,11 @@ jobs:
           host: ${{ secrets.GCP_VM_IP }}
           username: ${{ secrets.GCP_SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "build/libs/*.jar"
+          source: "build/libs/*.jar,Dockerfile"
           target: "/home/${{ secrets.GCP_SSH_USER }}/app"
           strip_components: 2
 
-      - name: Restart Application
+      - name: Restart Application with Docker
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.GCP_VM_IP }}
@@ -38,22 +38,34 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             APP_DIR="/home/${{ secrets.GCP_SSH_USER }}/app"
-            mkdir -p $APP_DIR
+            cd $APP_DIR
             
-            # Stop the old application if it's running on port 9000
-            sudo fuser -k 9000/tcp || true
-            
-            # Find the JAR file (excluding the -plain.jar) in the absolute path
-            JAR_FILE=$(find $APP_DIR -name "oauth-*.jar" ! -name "*-plain.jar" | head -n 1)
+            # Find the JAR file
+            JAR_FILE=$(find . -name "oauth-*.jar" ! -name "*-plain.jar" | head -n 1)
             
             if [ -z "$JAR_FILE" ]; then
               echo "Error: No suitable JAR file found in $APP_DIR"
-              ls -la $APP_DIR || echo "Directory does not exist"
               exit 1
             fi
+
+            # Create/Update Dockerfile in the app directory to ensure it uses the correct JAR name
+            cat <<EOF > Dockerfile
+            FROM eclipse-temurin:21-jre-jammy
+            WORKDIR /app
+            COPY $JAR_FILE app.jar
+            EXPOSE 9000
+            ENTRYPOINT ["java", "-jar", "app.jar", "--server.port=9000"]
+            EOF
             
-            echo "Starting application with $JAR_FILE..."
-            cd $APP_DIR
-            # Run the JAR in the background and redirect output to app.log
-            nohup java -jar "$JAR_FILE" > app.log 2>&1 &
-            echo "Application startup command executed."
+            # Build the Docker image
+            docker build -t oauth-service .
+            
+            # Stop and remove the old container if it exists
+            docker stop oauth-app || true
+            docker rm oauth-app || true
+            
+            # Run the new container
+            # We map port 9000 on the VM to port 9000 in the container
+            docker run -d --name oauth-app -p 9000:9000 oauth-service
+            
+            echo "Docker container started successfully."

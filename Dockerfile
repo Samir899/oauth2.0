@@ -1,20 +1,16 @@
-# Stage 1: Build
-FROM gradle:8.5-jdk21-alpine AS build
-WORKDIR /app
-COPY . .
-RUN ./gradlew build -x test
+# Use Java 21 as the base image
+FROM eclipse-temurin:21-jre-jammy
 
-# Stage 2: Runtime
-FROM eclipse-temurin:21-jre-alpine
+# Create a directory for the app
 WORKDIR /app
-# Copy only the built jar from the build stage
-# Using a wildcard to match the generated jar name
-COPY --from=build /app/build/libs/*.jar app.jar
 
-# Standard Spring Boot port
+# Copy the JAR from the build folder
+# Note: In the GitHub Action, we will SCP the JAR to a folder, 
+# and then build the image on the VM using this Dockerfile.
+COPY oauth-*.jar app.jar
+
+# Expose the port your app runs on
 EXPOSE 9000
 
-# Entrypoint to run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
-
-
+# Start the application
+ENTRYPOINT ["java", "-jar", "app.jar", "--server.port=9000"]
