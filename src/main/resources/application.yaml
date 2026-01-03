@@ -1,15 +1,4 @@
 spring:
-  mail:
-    host: ${MAIL_HOST:smtp.gmail.com}
-    port: 587
-    username: ${MAIL_USERNAME:sameerkmr823@gmail.com}
-    password: ${MAIL_PASSWORD:uknaypjrgoiaijuw}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
   application:
     name: oauth
   datasource:
